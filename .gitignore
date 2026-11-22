@@ -1,0 +1,41 @@
+# Secrets: never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+credentials
+*.credentials
+.aws/
+
+# Terraform state and variable files can contain secrets
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Kubernetes credentials
+kubeconfig
+*.kubeconfig
+
+# Python and ML
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+mlruns/
+
+# Node
+node_modules/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/

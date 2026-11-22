@@ -1,0 +1,1353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The DevOps Big Picture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: one 1040px lesson column. Prose caps near 68ch; interactive figures use the full width. */
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --surface-2:#E9EDF4; --ink:#152033; --ink-2:#4B5970; --line:#D3DAE5;
+  --accent:#2450C8; --accent-soft:#DCE4FA; --on-accent:#FFFFFF;
+  --pass:#1C7F54; --pass-soft:#DAF0E5; --warn:#A86B12; --warn-soft:#F8ECD5; --fail:#B93B34; --fail-soft:#F7DEDC;
+  --f-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --f-body:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D131D; --surface:#141C29; --surface-2:#1B2535; --ink:#E3E8F1; --ink-2:#9BA9BF; --line:#283447;
+    --accent:#7FA3FF; --accent-soft:#1D2B4F; --on-accent:#0D131D;
+    --pass:#4FC48D; --pass-soft:#143426; --warn:#E5AB4A; --warn-soft:#382C15; --fail:#F17D75; --fail-soft:#3B1E1D;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D131D; --surface:#141C29; --surface-2:#1B2535; --ink:#E3E8F1; --ink-2:#9BA9BF; --line:#283447;
+  --accent:#7FA3FF; --accent-soft:#1D2B4F; --on-accent:#0D131D;
+  --pass:#4FC48D; --pass-soft:#143426; --warn:#E5AB4A; --warn-soft:#382C15; --fail:#F17D75; --fail-soft:#3B1E1D;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+img,svg{max-width:100%}
+.lesson{max-width:1040px;margin:0 auto}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-0.01em}
+h1{font-size:clamp(2.1rem,5.4vw,3.3rem);font-weight:700;letter-spacing:-0.025em}
+h2{font-size:clamp(1.45rem,3vw,1.85rem);font-weight:600}
+h3{font-size:1.12rem;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+code{background:var(--surface-2);padding:1px 6px;border-radius:4px}
+strong{font-weight:600}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Hero */
+.hero{display:grid;gap:20px;padding-bottom:34px;border-bottom:1px solid var(--line)}
+.lede{font-size:1.12rem;color:var(--ink-2);max-width:66ch}
+.meta-row{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--f-mono);font-size:13px;color:var(--ink-2)}
+.outcomes{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px 28px}
+.outcomes li{position:relative;padding-left:24px;font-size:15px}
+.outcomes li::before{content:"";position:absolute;left:0;top:.42em;width:12px;height:12px;border:2px solid var(--accent);border-radius:3px}
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.toc a{font-size:13px;padding:4px 11px;border:1px solid var(--line);border-radius:999px;color:var(--ink-2);text-decoration:none;background:var(--surface)}
+.toc a:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Parts */
+.part{display:grid;gap:22px;padding-block:52px;border-bottom:1px solid var(--line);scroll-margin-top:16px}
+.part-head{display:grid;gap:8px;max-width:70ch}
+.part-no{font-family:var(--f-mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.prose{max-width:68ch;display:grid;gap:14px}
+.prose ul,.prose ol{margin:0;padding-left:1.25em;display:grid;gap:6px}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:clamp(14px,2.5vw,24px);display:grid;gap:18px;min-width:0;margin:0}
+.fig figcaption,.cap{font-size:13.5px;color:var(--ink-2);max-width:78ch}
+.fig-title{font-family:var(--f-display);font-weight:600;font-size:1.06rem}
+.fig-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}
+.scroll-x{overflow-x:auto;min-width:0;-webkit-overflow-scrolling:touch}
+.keyidea{background:var(--accent-soft);border-radius:10px;padding:14px 18px;display:grid;gap:4px;max-width:78ch}
+.keyidea .label{font-family:var(--f-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:inherit;font-size:14px;font-weight:500;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+.seg button{font:inherit;font-size:14px;border:0;background:transparent;color:var(--ink-2);padding:8px 14px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.seg button:disabled{cursor:not-allowed}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.03em;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.pill.auto{background:var(--pass-soft);color:var(--pass)}
+.pill.wait{background:var(--warn-soft);color:var(--warn)}
+.pill.manual{background:var(--surface-2);color:var(--ink)}
+.pill.work{background:var(--accent-soft);color:var(--accent)}
+.kv{display:grid;gap:3px;min-width:0}
+.kv .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.kv p{font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:8px}
+.stat{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:grid;gap:2px;min-width:0}
+.stat .k{font-size:12.5px;color:var(--ink-2)}
+.stat .v{font-family:var(--f-mono);font-size:1.05rem;font-variant-numeric:tabular-nums}
+.stat .v.good{color:var(--pass)} .stat .v.bad{color:var(--fail)} .stat .v.meh{color:var(--warn)}
+.svg-t{fill:var(--ink);font-family:var(--f-body);font-size:12.5px}
+.svg-s{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em}
+
+/* Part 1: two loops */
+.loop-doom{fill:none;stroke:var(--fail);stroke-width:2;stroke-dasharray:5 5}
+.loop-good{fill:none;stroke:var(--pass);stroke-width:2}
+.node-doom{fill:var(--surface);stroke:var(--fail);stroke-width:1.5}
+.node-good{fill:var(--surface);stroke:var(--pass);stroke-width:1.5}
+.head-doom{fill:var(--fail)} .head-good{fill:var(--pass)}
+.lab-doom{fill:var(--fail)} .lab-good{fill:var(--pass)} .lab-sub{fill:var(--ink-2)}
+
+/* Part 2: simulator */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:8px}
+.step{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--surface);display:grid;gap:6px;align-content:start;font-size:13.5px;line-height:1.4;transition:border-color .2s,box-shadow .2s}
+.step-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.step .who{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.step .t{font-weight:600}
+.step .d{color:var(--ink-2);font-size:12.5px}
+.step .dur{font-family:var(--f-mono);font-size:12px;color:var(--ink-2)}
+.step[data-kind="wait"]{background:repeating-linear-gradient(135deg,var(--surface) 0 10px,var(--warn-soft) 10px 20px)}
+.step.active{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.step.done .dur{color:var(--ink);font-weight:500}
+.clock{display:grid;gap:6px}
+.clock-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.clock-val{font-family:var(--f-mono);font-size:1.45rem;font-weight:500;font-variant-numeric:tabular-nums}
+.timebar{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.timebar>div{height:100%;width:0;background:var(--accent);border-radius:6px}
+.clock-scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--ink-2)}
+.sim-result{border-radius:9px;padding:12px 14px;font-size:14.5px;display:grid;gap:4px}
+.sim-result:empty{display:none}
+.sim-result.ok{background:var(--pass-soft)} .sim-result.ok strong{color:var(--pass)}
+.sim-result.fail{background:var(--fail-soft)} .sim-result.fail strong{color:var(--fail)}
+.sim-result.info{background:var(--surface-2)}
+table.data{border-collapse:collapse;width:100%;font-size:13.5px}
+.data th,.data td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.data th{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:500}
+.data td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.data tbody th{font-family:var(--f-body);font-size:13.5px;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:600}
+.dora{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.dora-card{border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:6px;align-content:start;background:var(--surface)}
+.dora-card .grp{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.dora-card .grp.speed{color:var(--accent)} .dora-card .grp.stab{color:var(--pass)}
+.dora-card p{font-size:14px;color:var(--ink-2)}
+
+/* Part 3 */
+.definition{font-family:var(--f-display);font-size:clamp(1.15rem,2.4vw,1.4rem);font-weight:500;line-height:1.4;max-width:46ch;text-wrap:pretty}
+.myths{display:grid;max-width:900px}
+.myth{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:6px 24px;padding:14px 0;border-top:1px solid var(--line)}
+.myth:last-child{border-bottom:1px solid var(--line)}
+.myth .m{font-weight:600}
+.myth .m::before{content:"Myth  ";font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;color:var(--fail);white-space:pre}
+.myth .r{color:var(--ink-2)}
+@media (max-width:640px){.myth{grid-template-columns:minmax(0,1fr)}}
+.calms{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px}
+.calms-card{border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:6px;align-content:start;background:var(--surface)}
+.calms-card .L{font-family:var(--f-display);font-size:2rem;font-weight:700;color:var(--accent);line-height:1}
+.calms-card p{font-size:14px;color:var(--ink-2)}
+.calms-card .ex{font-size:13px;color:var(--ink)}
+
+/* Part 4: delivery loop */
+.loop-band{fill:none;stroke:var(--accent-soft);stroke-width:24;stroke-linecap:round}
+.loop-line{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-opacity:.45}
+.loop-mark{fill:var(--accent)}
+.loop-dot{fill:var(--accent)}
+.loop-side{fill:var(--ink-2)}
+.loop-node{cursor:pointer}
+.loop-node circle{fill:var(--surface);stroke:var(--accent);stroke-width:2;transition:fill .2s}
+.loop-node text{fill:var(--ink);font-family:var(--f-display);font-weight:600;font-size:14px;pointer-events:none}
+.loop-node:hover circle{fill:var(--accent-soft)}
+.loop-node[aria-pressed="true"] circle{fill:var(--accent)}
+.loop-node[aria-pressed="true"] text{fill:var(--on-accent)}
+.loop-node:focus{outline:none}
+.loop-node:focus-visible circle{stroke-width:4}
+.loop-detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px;border-top:1px solid var(--line);padding-top:18px}
+.ld-col{display:grid;gap:14px;align-content:start;min-width:0}
+.ld-head{display:grid;gap:6px}
+.ld-one{font-size:1.05rem}
+.ld-list{margin:0;padding-left:1.2em;display:grid;gap:4px;font-size:15px}
+.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px}
+.way{border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:4px;background:var(--surface)}
+.way .n{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.way p{font-size:14px;color:var(--ink-2)}
+
+/* Part 5: pipeline modes */
+.pipe{display:flex;align-items:stretch;min-width:800px}
+.pstage{flex:1 1 0;border:1.5px solid var(--line);border-radius:9px;padding:12px 8px;display:grid;gap:4px;align-content:center;text-align:center;font-size:13px;font-weight:600;background:var(--surface);transition:background .25s,border-color .25s}
+.pstage small{font-weight:400;font-family:var(--f-mono);font-size:10.5px;color:var(--ink-2)}
+.pstage.auto{background:var(--pass-soft);border-color:var(--pass)}
+.pstage.auto small{color:var(--pass)}
+.pstage.manual{border-style:dashed;color:var(--ink-2)}
+.parrow{flex:0 0 22px;display:grid;place-items:center;color:var(--ink-2);font-size:15px}
+.gate{flex:0 0 88px;display:grid;place-items:center;margin:0 6px;border-radius:9px;background:var(--warn-soft);color:var(--warn);font-family:var(--f-mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;text-align:center;padding:6px;line-height:1.35;border:1.5px solid var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:16px;height:12px;border-radius:3px;display:inline-block;border:1.5px solid var(--line)}
+.sw.auto{background:var(--pass-soft);border-color:var(--pass)}
+.sw.manual{border-style:dashed}
+.sw.gate{background:var(--warn-soft);border-color:var(--warn)}
+.cd-detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:16px;border-top:1px solid var(--line);padding-top:16px}
+
+/* Part 6: drift */
+.fleet{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:10px}
+.server{border:1.5px solid var(--pass);background:var(--pass-soft);border-radius:10px;padding:12px;display:grid;gap:6px;align-content:start;transition:background .3s,border-color .3s}
+.server.drifted{border-color:var(--warn);background:var(--warn-soft)}
+.server .nm{font-family:var(--f-mono);font-weight:500;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.server .st{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+.server .st.ok{color:var(--pass)} .server .st.bad{color:var(--warn)}
+.server ul{margin:0;padding-left:1.1em;font-family:var(--f-mono);font-size:12px;display:grid;gap:3px;color:var(--ink)}
+.server .none{font-size:12.5px;color:var(--ink-2)}
+.server.flash{animation:flash .9s ease-out}
+@keyframes flash{from{box-shadow:0 0 0 5px var(--accent)}to{box-shadow:0 0 0 0 transparent}}
+.dlog{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px}
+.dlog li{padding-left:14px;position:relative;color:var(--ink-2)}
+.dlog li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dlog li:first-child{color:var(--ink)}
+.dlog li:first-child::before{background:var(--accent)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.rule{border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:6px;background:var(--surface)}
+.rule p{font-size:14.5px;color:var(--ink-2)}
+
+/* Part 7: tool map */
+.stackmap{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
+@media (max-width:780px){.stackmap{grid-template-columns:minmax(0,1fr)}}
+.stack,.rails{display:grid;gap:6px;align-content:start}
+.layer,.rail{border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:grid;gap:8px;background:var(--surface)}
+.rail{border-style:dashed}
+.layer.base{background:var(--surface-2)}
+.layer-name{font-family:var(--f-mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+.layer-desc{font-size:12.5px;color:var(--ink-2);margin-top:-4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip:hover{border-color:var(--accent)}
+.chip .aws{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.06em;padding:0 4px;border-radius:3px;border:1px solid currentColor;color:var(--ink-2)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.chip[aria-pressed="true"] .aws{color:var(--on-accent)}
+.tool-card{border-top:1px solid var(--line);padding-top:18px;display:grid;gap:16px}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px}
+
+/* Part 8: decision tree */
+.trail{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}
+.trail li{font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-2)}
+.trail li b{color:var(--ink);font-weight:600}
+.tq{font-family:var(--f-display);font-size:1.2rem;font-weight:600;max-width:62ch;line-height:1.35}
+.thint{color:var(--ink-2);font-size:14.5px;max-width:70ch}
+.answers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
+.answer{text-align:left;padding:14px 16px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
+.answer:hover{border-color:var(--accent);background:var(--accent-soft)}
+.result{display:grid;gap:16px}
+.result .rk{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pass)}
+.resp{display:grid;gap:6px;max-width:560px}
+.resp-row{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:10px;align-items:center;font-size:14px}
+.who{text-align:center;border-radius:6px;padding:4px 8px;font-family:var(--f-mono);font-size:12px}
+.who.aws{background:var(--accent-soft);color:var(--accent)}
+.who.you{background:var(--warn-soft);color:var(--warn)}
+.who.shared{background:repeating-linear-gradient(135deg,var(--accent-soft) 0 6px,var(--warn-soft) 6px 12px);color:var(--ink)}
+
+/* Part 9: MLOps */
+.changes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px}
+.chg{font-family:var(--f-mono);font-size:12.5px;padding:4px 12px;border-radius:999px;border:1.5px solid var(--line);color:var(--ink-2)}
+.chg.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:500}
+.chg.off{text-decoration:line-through;opacity:.6}
+.mlpipe-wrap{min-width:820px;display:grid;gap:0}
+.mlpipe{display:flex;align-items:stretch}
+.mstep{flex:1 1 0;border:1.5px solid var(--line);border-radius:9px;padding:10px 8px;display:grid;gap:4px;align-content:center;text-align:center;background:var(--surface);font-size:13px;font-weight:600}
+.mstep small{font-family:var(--f-mono);font-weight:400;font-size:10.5px;color:var(--ink-2)}
+.mstep.new{border-color:var(--accent);background:var(--accent-soft)}
+.loopback{margin:0 6% 0;height:26px;border:2px solid var(--warn);border-top:0;border-radius:0 0 14px 14px;position:relative}
+.loopback::before{content:"";position:absolute;left:-7px;top:-2px;border:6px solid transparent;border-bottom:9px solid var(--warn);border-top:0;transform:translateY(-6px)}
+.loopback span{position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);background:var(--surface);padding:0 10px;font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;color:var(--warn);white-space:nowrap}
+.drift-train{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.drift-live{fill:none;stroke:var(--warn);stroke-width:2.5;stroke-dasharray:6 4}
+.axis{stroke:var(--ink-2);stroke-width:1}
+.tick{fill:var(--ink-2);font-family:var(--f-mono);font-size:10.5px}
+.lg-train{fill:var(--accent)} .lg-live{fill:var(--warn)}
+input[type="range"]{width:100%;max-width:520px;accent-color:var(--accent)}
+.drift-ctl{display:grid;gap:8px}
+.drift-ctl label{font-size:14.5px}
+
+/* Part 10: quiz */
+.quiz{display:grid;gap:14px}
+.qcard{border:1px solid var(--line);border-radius:12px;padding:18px;background:var(--surface);display:grid;gap:12px}
+.qcard .qn{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.qcard .qq{font-weight:600;font-size:15.5px;max-width:75ch}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;font:inherit;font-size:14.5px;padding:10px 14px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--pass);background:var(--pass-soft)}
+.opt.wrong{border-color:var(--fail);background:var(--fail-soft)}
+.why{font-size:14.5px;border-radius:9px;padding:12px 14px;background:var(--surface-2)}
+.why strong{display:block;margin-bottom:2px}
+.score{font-family:var(--f-mono);font-size:14px}
+
+/* Part 11 */
+.checklist{list-style:none;margin:0;padding:0;display:grid;gap:10px;max-width:78ch}
+.checklist li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;align-items:start}
+.checklist input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
+.checklist label{font-size:15px}
+.checklist .sub{display:block;color:var(--ink-2);font-size:14px;margin-top:2px}
+.lesson-foot{padding-top:40px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;font-size:14px;color:var(--ink-2)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<main class="lesson">
+
+<header class="hero">
+  <span class="eyebrow">Lesson 01 of 24 · Phase 0, Foundations</span>
+  <h1>The DevOps Big Picture</h1>
+  <p class="lede">Before any tool, you need a map. This lesson follows one code change from a laptop to real users, shows what goes wrong without DevOps practices, and places every tool in this course (Linux, Git, Docker, Kubernetes, AWS, Terraform, MLOps) on that map, so each later lesson has somewhere to land.</p>
+  <div class="meta-row"><span>About 75 minutes</span><span>No setup needed</span><span>8 interactive figures</span><span>7 check questions</span></div>
+  <div>
+    <h3 style="margin-bottom:10px">By the end you can</h3>
+    <ul class="outcomes">
+      <li>Explain the problem DevOps solves by tracing one change's journey, and why batch size is the lever.</li>
+      <li>Name the eight stages of the delivery loop and which kind of tool protects each one.</li>
+      <li>Tell Continuous Integration, Continuous Delivery and Continuous Deployment apart, and pick one for a team.</li>
+      <li>Explain configuration drift and why modern servers are replaced, not repaired.</li>
+      <li>Place AWS, Docker, Kubernetes, Terraform and MLOps tools on one map, and say when you don't need each.</li>
+      <li>Judge a team's delivery with the four DORA metrics, and explain why ML systems need extra practices.</li>
+    </ul>
+  </div>
+  <nav class="toc" aria-label="Lesson sections">
+    <a href="#why">Why DevOps exists</a><a href="#ship">Ship one change</a><a href="#what">What DevOps is</a><a href="#loop">The delivery loop</a><a href="#cicd">CI vs CD vs CD</a><a href="#cattle">Servers as cattle</a><a href="#map">The tool map</a><a href="#where">Where to run an app</a><a href="#mlops">Where MLOps fits</a><a href="#check">Check yourself</a><a href="#next">Before Lesson 02</a>
+  </nav>
+</header>
+
+<!-- PART 1 -->
+<section class="part" id="why">
+  <div class="part-head"><span class="part-no">Part 1</span><h2>Why DevOps exists</h2></div>
+  <div class="prose">
+    <p>Every software organization has two jobs that pull against each other. <strong>Developers</strong> are rewarded for changing the system: new features, fixes, experiments. <strong>Operations</strong> is rewarded for keeping it stable, and every change is a threat to stability. Put those goals in separate teams with separate managers and you get a wall. Developers throw finished code over it, operations catches it, and when production breaks each side blames the other.</p>
+    <p>That wall produces a predictable loop. Deploys are painful, so teams deploy less often. Deploying less often means each deploy carries more changes. More changes at once means more things break together, and the cause is harder to find. So deploys become even more painful.</p>
+  </div>
+  <figure class="fig">
+    <div class="scroll-x">
+      <svg viewBox="0 0 920 300" role="img" aria-label="Two feedback loops compared. Doom loop: deploys are risky, so teams deploy less often, so each deploy is bigger, so failures are big and murky, so deploys feel riskier. Small-batch loop: deploys are small, so failures are small and clear, so confidence grows, so teams deploy more often, which keeps deploys small." style="width:100%;min-width:640px;height:auto;display:block">
+        <ellipse class="loop-doom" cx="230" cy="150" rx="130" ry="110"/>
+        <ellipse class="loop-good" cx="690" cy="150" rx="130" ry="110"/>
+        <polygon class="head-doom" points="-7,-5.5 7,0 -7,5.5" transform="translate(321.9 72.2) rotate(40.2)"/>
+        <polygon class="head-doom" points="-7,-5.5 7,0 -7,5.5" transform="translate(321.9 227.8) rotate(139.8)"/>
+        <polygon class="head-doom" points="-7,-5.5 7,0 -7,5.5" transform="translate(138.1 227.8) rotate(220.2)"/>
+        <polygon class="head-doom" points="-7,-5.5 7,0 -7,5.5" transform="translate(138.1 72.2) rotate(319.8)"/>
+        <polygon class="head-good" points="-7,-5.5 7,0 -7,5.5" transform="translate(781.9 72.2) rotate(40.2)"/>
+        <polygon class="head-good" points="-7,-5.5 7,0 -7,5.5" transform="translate(781.9 227.8) rotate(139.8)"/>
+        <polygon class="head-good" points="-7,-5.5 7,0 -7,5.5" transform="translate(598.1 227.8) rotate(220.2)"/>
+        <polygon class="head-good" points="-7,-5.5 7,0 -7,5.5" transform="translate(598.1 72.2) rotate(319.8)"/>
+        <rect class="node-doom" x="140" y="18" width="180" height="44" rx="8"/>
+        <text class="svg-t" x="230" y="44.5" text-anchor="middle">Deploys are risky</text>
+        <rect class="node-doom" x="270" y="128" width="180" height="44" rx="8"/>
+        <text class="svg-t" x="360" y="154.5" text-anchor="middle">So deploy less often</text>
+        <rect class="node-doom" x="140" y="238" width="180" height="44" rx="8"/>
+        <text class="svg-t" x="230" y="264.5" text-anchor="middle">Each deploy is bigger</text>
+        <rect class="node-doom" x="10" y="128" width="180" height="44" rx="8"/>
+        <text class="svg-t" x="100" y="154.5" text-anchor="middle">Failures are big, murky</text>
+        <text class="svg-s lab-doom" x="230" y="112" text-anchor="middle">DOOM LOOP</text>
+        <text class="svg-s lab-sub" x="230" y="196" text-anchor="middle">siloed teams</text>
+        <rect class="node-good" x="600" y="18" width="180" height="44" rx="8"/>
+        <text class="svg-t" x="690" y="44.5" text-anchor="middle">Deploys are small</text>
+        <rect class="node-good" x="730" y="128" width="180" height="44" rx="8"/>
+        <text class="svg-t" x="820" y="154.5" text-anchor="middle">Failures small, clear</text>
+        <rect class="node-good" x="600" y="238" width="180" height="44" rx="8"/>
+        <text class="svg-t" x="690" y="264.5" text-anchor="middle">Confidence grows</text>
+        <rect class="node-good" x="470" y="128" width="180" height="44" rx="8"/>
+        <text class="svg-t" x="560" y="154.5" text-anchor="middle">So deploy more often</text>
+        <text class="svg-s lab-good" x="690" y="112" text-anchor="middle">SMALL-BATCH LOOP</text>
+        <text class="svg-s lab-sub" x="690" y="196" text-anchor="middle">DevOps</text>
+      </svg>
+    </div>
+    <figcaption>The same four forces, running in opposite directions. Batch size is the lever: shrink it, and risk, debugging time and fear all shrink with it.</figcaption>
+  </figure>
+  <div class="keyidea">
+    <span class="label">Key idea</span>
+    <p>The most important idea in this course is <strong>batch size</strong>. Small, frequent changes are safer than big, rare ones. Automation, containers, infrastructure as code and monitoring all exist to make small, frequent changes cheap and safe.</p>
+  </div>
+</section>
+
+<!-- PART 2 -->
+<section class="part" id="ship">
+  <div class="part-head"><span class="part-no">Part 2</span><h2>Ship one change, two ways</h2>
+    <p class="cap" style="font-size:15px">Follow one change through two organizations. Press <strong>Ship a change</strong> and watch where the time goes. Run it several times: failures are random, at rates that reflect batch size.</p></div>
+  <figure class="fig" id="sim">
+    <div class="fig-head">
+      <div class="seg" id="simSeg" role="group" aria-label="Choose an organization">
+        <button type="button" data-v="trad" aria-pressed="true">Traditional, siloed teams</button><button type="button" data-v="devops" aria-pressed="false">DevOps, one team + pipeline</button>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn primary" id="simRun">Ship a change</button>
+        <button type="button" class="btn" id="simRun10">Ship 10 more, instantly</button>
+      </div>
+    </div>
+    <ol class="steps" id="simSteps"></ol>
+    <div class="clock">
+      <div class="clock-row"><span class="eyebrow">Time since work started</span><span class="clock-val" id="simClock">0 min</span></div>
+      <div class="timebar" aria-hidden="true"><div id="simFill"></div></div>
+      <div class="clock-scale"><span>0</span><span id="simScaleMax"></span></div>
+    </div>
+    <div class="stats" id="simStats"></div>
+    <div class="sim-result" id="simResult" aria-live="polite"></div>
+    <div class="scroll-x"><table class="data" id="simTally" style="min-width:560px"></table></div>
+    <figcaption>Both bars use the same time scale, so the DevOps run barely fills it. Durations and failure rates are illustrative, chosen to show the shape of the difference, not measured benchmarks.</figcaption>
+  </figure>
+  <div class="prose">
+    <h3>What to notice</h3>
+    <ul>
+      <li><strong>Most of the traditional lead time is waiting, not working.</strong> Queues between teams dominate. Nobody is slow; the system is.</li>
+      <li><strong>The DevOps path isn't faster because people type faster.</strong> It removes queues and handoffs, and it replaces days of manual checks with automated ones that finish in minutes.</li>
+      <li><strong>Failure costs differ by orders of magnitude.</strong> When the small change fails, there's one suspect and an automatic rollback. When the big batch fails, there are 40 suspects and a weekend of digging.</li>
+    </ul>
+  </div>
+  <div class="prose" style="max-width:none">
+    <h3>The four numbers that measure this</h3>
+    <p style="max-width:68ch">Google's DORA research program (DevOps Research and Assessment) has surveyed tens of thousands of practitioners since 2014. It found four metrics that predict how well a team delivers software. The table under the simulator tracks three of them for you.</p>
+  </div>
+  <div class="dora">
+    <div class="dora-card"><span class="grp speed">Speed</span><h4>Deployment frequency</h4><p>How often you deploy to production. Strong teams deploy on demand, often several times a day.</p></div>
+    <div class="dora-card"><span class="grp speed">Speed</span><h4>Lead time for changes</h4><p>Time from a commit to that code running in production. In the simulator, weeks versus hours.</p></div>
+    <div class="dora-card"><span class="grp stab">Stability</span><h4>Change failure rate</h4><p>The share of deployments that cause a failure needing a fix or rollback.</p></div>
+    <div class="dora-card"><span class="grp stab">Stability</span><h4>Failed deployment recovery time</h4><p>How long it takes to restore service after a bad deploy. Older reports call it time to restore, or MTTR.</p></div>
+  </div>
+  <div class="keyidea">
+    <span class="label">The research's headline finding</span>
+    <p>Speed and stability are not a trade-off. The best teams are better at both at once, because small batches make both easier. If someone argues for slowing releases down to make them safer, this is the data that says otherwise.</p>
+  </div>
+</section>
+
+<!-- PART 3 -->
+<section class="part" id="what">
+  <div class="part-head"><span class="part-no">Part 3</span><h2>What DevOps is, and isn't</h2></div>
+  <p class="definition">DevOps is a way of working in which the people who build a service share responsibility for running it, and use automation and measurement to make changes small, frequent and safe.</p>
+  <div class="myths">
+    <div class="myth"><span class="m">It's a tool you install.</span><span class="r">Tools support it. A team with Kubernetes and a monthly release train hasn't adopted DevOps; it has adopted Kubernetes.</span></div>
+    <div class="myth"><span class="m">It's a separate DevOps team that deploys for everyone.</span><span class="r">That rebuilds the wall under a new name. A <em>platform team</em> that builds self-service tooling other teams use on their own is different, and useful.</span></div>
+    <div class="myth"><span class="m">It means developers do ops work instead of features.</span><span class="r">The goal is to automate ops work away, so nobody does it by hand at all.</span></div>
+    <div class="myth"><span class="m">It means moving fast and breaking things.</span><span class="r">The data says the opposite: frequent, small deploys break things less often and recover faster.</span></div>
+  </div>
+  <div class="prose"><h3>CALMS: the five parts of the practice</h3><p>A common way to check whether an organization is really doing DevOps, or just using its vocabulary.</p></div>
+  <div class="calms">
+    <div class="calms-card"><span class="L">C</span><h4>Culture</h4><p>Shared ownership of outcomes. Incidents are reviewed without blame, to fix the system rather than the person.</p><span class="ex">Example: developers join the on-call rotation for their service.</span></div>
+    <div class="calms-card"><span class="L">A</span><h4>Automation</h4><p>Anything done twice by hand gets scripted: builds, tests, deploys, infrastructure, rollbacks.</p><span class="ex">Example: every merge triggers the same pipeline.</span></div>
+    <div class="calms-card"><span class="L">L</span><h4>Lean</h4><p>Small batches, little work in progress, and no waiting in queues. Remove steps that add delay but no value.</p><span class="ex">Example: replace a weekly approval meeting with automated checks.</span></div>
+    <div class="calms-card"><span class="L">M</span><h4>Measurement</h4><p>Decisions come from data: DORA metrics, service health, cost.</p><span class="ex">Example: a dashboard everyone checks after each deploy.</span></div>
+    <div class="calms-card"><span class="L">S</span><h4>Sharing</h4><p>Knowledge, dashboards, runbooks and lessons from incidents are open to everyone.</p><span class="ex">Example: postmortems are published to the whole engineering org.</span></div>
+  </div>
+  <div class="prose">
+    <h3>What the job titles mean</h3>
+    <p>"DevOps engineer" on a job posting usually means someone who builds and maintains CI/CD pipelines, cloud infrastructure as code, container platforms and monitoring. Related titles overlap heavily: <strong>Platform Engineer</strong> (builds the internal tooling other teams self-serve from), <strong>Site Reliability Engineer</strong> (applies software engineering to reliability, with SLOs and error budgets), <strong>Cloud Engineer</strong>, and <strong>MLOps Engineer</strong> (the same skills, applied to training and serving models). This course builds the skills under all of them.</p>
+  </div>
+</section>
+
+<!-- PART 4 -->
+<section class="part" id="loop">
+  <div class="part-head"><span class="part-no">Part 4</span><h2>The delivery loop</h2>
+    <p class="cap" style="font-size:15px">Every change travels the same eight stages. The left half is where software gets made; the right half is where it meets users. Each tool you learn automates or protects one stage. Click a stage, or focus one and use the arrow keys.</p></div>
+  <figure class="fig">
+    <div class="scroll-x">
+      <svg id="loopSvg" viewBox="0 0 800 340" role="img" aria-label="The DevOps delivery loop: a figure-eight. Dev side: Plan, Code, Build, Test. Ops side: Release, Deploy, Operate, Monitor, which feeds back into Plan." style="width:100%;min-width:600px;height:auto;display:block">
+        <path id="loopPath" class="loop-band" d="M400 170 C330 60 100 60 100 170 C100 280 330 280 400 170 C470 60 700 60 700 170 C700 280 470 280 400 170"/>
+        <path class="loop-line" d="M400 170 C330 60 100 60 100 170 C100 280 330 280 400 170 C470 60 700 60 700 170 C700 280 470 280 400 170"/>
+        <g id="loopMarks"></g>
+        <circle id="loopDot" class="loop-dot" r="5" cx="0" cy="0"/>
+        <text class="svg-s loop-side" x="240" y="166" text-anchor="middle">DEV</text>
+        <text class="svg-s loop-side" x="240" y="184" text-anchor="middle">make it</text>
+        <text class="svg-s loop-side" x="560" y="166" text-anchor="middle">OPS</text>
+        <text class="svg-s loop-side" x="560" y="184" text-anchor="middle">run it</text>
+        <g id="loopNodes"></g>
+      </svg>
+    </div>
+    <div class="loop-detail" id="loopDetail" aria-live="polite"></div>
+  </figure>
+  <div class="prose" style="max-width:none"><h3>The Three Ways</h3><p style="max-width:68ch">From <em>The DevOps Handbook</em>. They describe what the loop is for.</p></div>
+  <div class="ways">
+    <div class="way"><span class="n">First Way</span><h4>Flow</h4><p>Make the left-to-right path fast and smooth: small batches, automation, no queues.</p></div>
+    <div class="way"><span class="n">Second Way</span><h4>Feedback</h4><p>Make right-to-left signals fast: tests, monitoring and alerts reach the people who wrote the code within minutes.</p></div>
+    <div class="way"><span class="n">Third Way</span><h4>Continual learning</h4><p>Use every incident and experiment to improve the system, and make it safe to try things.</p></div>
+  </div>
+</section>
+
+<!-- PART 5 -->
+<section class="part" id="cicd">
+  <div class="part-head"><span class="part-no">Part 5</span><h2>CI vs Continuous Delivery vs Continuous Deployment</h2>
+    <p class="cap" style="font-size:15px">"CI/CD" hides three different promises. The difference is where automation stops and a person takes over. Switch between them.</p></div>
+  <figure class="fig">
+    <div class="seg" id="cdSeg" role="group" aria-label="Choose a practice">
+      <button type="button" data-v="ci" aria-pressed="true">Continuous Integration</button><button type="button" data-v="delivery" aria-pressed="false">Continuous Delivery</button><button type="button" data-v="deployment" aria-pressed="false">Continuous Deployment</button>
+    </div>
+    <div class="scroll-x"><div class="pipe" id="pipe"></div></div>
+    <div class="legend"><span><i class="sw auto"></i>Runs automatically</span><span><i class="sw manual"></i>Manual or ad hoc</span><span><i class="sw gate"></i>A person approves</span></div>
+    <div class="cd-detail" id="cdDetail" aria-live="polite"></div>
+  </figure>
+  <div class="keyidea">
+    <span class="label">Watch for this</span>
+    <p>When someone says "we do CD", ask which one. Many teams that claim Continuous Deployment do Continuous Delivery, and many that claim Continuous Delivery only do CI. Each level contains the one before it.</p>
+  </div>
+</section>
+
+<!-- PART 6 -->
+<section class="part" id="cattle">
+  <div class="part-head"><span class="part-no">Part 6</span><h2>Servers as cattle, not pets</h2>
+    <p class="cap" style="font-size:15px">Old-style servers are <strong>pets</strong>: named, hand-tended, irreplaceable, and nursed back to health when sick. Modern servers are <strong>cattle</strong>: numbered, identical, built from code, and replaced rather than repaired. The reason is configuration drift. Try the buttons in different orders.</p></div>
+  <figure class="fig">
+    <div class="controls">
+      <button type="button" class="btn" id="dPatch">Hand-patch a server over SSH</button>
+      <button type="button" class="btn" id="dCrash">A server crashes</button>
+      <button type="button" class="btn primary" id="dCode">Put the fixes in code and redeploy</button>
+      <button type="button" class="btn" id="dReset">Reset</button>
+    </div>
+    <div class="fleet" id="fleet"></div>
+    <div class="stats" id="dStats"></div>
+    <div>
+      <span class="eyebrow">What happened, newest first</span>
+      <ol class="dlog" id="dlog" style="margin-top:8px"></ol>
+    </div>
+    <figcaption>Try this sequence: hand-patch twice, crash a server, then put the fixes in code. Notice which fix never makes it into the code.</figcaption>
+  </figure>
+  <div class="prose"><p>The lesson: <strong>a change made by hand is invisible.</strong> It isn't reviewed, it isn't recorded, and the next rebuild deletes it. Two rules follow from that.</p></div>
+  <div class="rules">
+    <div class="rule"><h4>Immutable infrastructure</h4><p>Never change a running server by hand. Change the definition (a Dockerfile, a machine image, Terraform), build a new version, and replace the old servers with it.</p></div>
+    <div class="rule"><h4>Infrastructure as Code (IaC)</h4><p>Every server, network and permission is defined in files in Git, reviewed like code, and able to rebuild the whole environment from nothing.</p></div>
+  </div>
+  <div class="prose"><p>You'll meet this idea three times: Docker applies it to the application package (Lesson 07), Terraform to cloud infrastructure (Lesson 12), and Kubernetes to running containers, by constantly replacing anything that drifts from the declared state (Lesson 13).</p></div>
+</section>
+
+<!-- PART 7 -->
+<section class="part" id="map">
+  <div class="part-head"><span class="part-no">Part 7</span><h2>The tool map</h2>
+    <p class="cap" style="font-size:15px">Every major tool in this course, in the layer it lives in. The stack on the left runs your software; the rails on the right cut across every layer. Click a tool to see what problem it solves and, just as important, when you don't need it.</p></div>
+  <figure class="fig">
+    <div class="stackmap">
+      <div class="stack" id="stack"><span class="eyebrow">The runtime stack, top to bottom</span></div>
+      <div class="rails" id="rails"><span class="eyebrow">Cross-cutting rails</span></div>
+    </div>
+    <div class="tool-card" id="toolCard" aria-live="polite"></div>
+  </figure>
+</section>
+
+<!-- PART 8 -->
+<section class="part" id="where">
+  <div class="part-head"><span class="part-no">Part 8</span><h2>Where should this app run?</h2>
+    <p class="cap" style="font-size:15px">Your first "when to use what" decision on AWS. Answer three questions about an app you have in mind. The answer shows what you manage and what AWS manages for you.</p></div>
+  <figure class="fig" id="tree">
+    <ol class="trail" id="trail" aria-label="Your answers so far"></ol>
+    <div id="treeBody" aria-live="polite"></div>
+    <div class="controls"><button type="button" class="btn" id="treeBack">Back</button><button type="button" class="btn" id="treeReset">Start over</button></div>
+  </figure>
+  <div class="prose" style="max-width:none"><h3>All four at a glance</h3></div>
+  <div class="scroll-x">
+    <table class="data" style="min-width:780px">
+      <thead><tr><th scope="col"></th><th scope="col">Lambda</th><th scope="col">ECS on Fargate</th><th scope="col">EKS (Kubernetes)</th><th scope="col">EC2 (virtual machines)</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">You manage</th><td>Code and its settings</td><td>Container image, task size, scaling rules</td><td>Workloads, cluster add-ons, upgrades; nodes unless AWS manages them</td><td>Everything from the OS up</td></tr>
+        <tr><th scope="row">You pay for</th><td>Each request plus run time, by the millisecond</td><td>vCPU and memory per second while tasks run</td><td>An hourly fee per cluster, plus the compute it runs on</td><td>Each instance, per second, while it runs</td></tr>
+        <tr><th scope="row">Idle cost</th><td>Zero</td><td>Whatever tasks you keep running</td><td>Cluster fee plus nodes, even with no traffic</td><td>Full price while running</td></tr>
+        <tr><th scope="row">Best for</th><td>Event-driven glue, spiky low-traffic APIs, scheduled jobs</td><td>Most web apps, APIs and workers at small and mid-size teams</td><td>Many services, several teams, ML platforms with GPUs</td><td>Legacy apps, full OS control, special hardware</td></tr>
+        <tr><th scope="row">Watch out for</th><td>15-minute limit, cold starts, cost at steady high load</td><td>AWS-specific; costs more per vCPU than raw EC2 at large scale</td><td>Steep learning curve; needs real platform ownership</td><td>Patching, hardening, scaling are all on you</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="keyidea">
+    <span class="label">A blind spot worth naming</span>
+    <p>Kubernetes is the most over-adopted tool on this list. It shows up in job postings everywhere, so teams pick it to build résumés. A three-person team running two services on EKS spends more time on the platform than on the product. Learn it thoroughly (we will), and still default to the simplest option that fits.</p>
+  </div>
+</section>
+
+<!-- PART 9 -->
+<section class="part" id="mlops">
+  <div class="part-head"><span class="part-no">Part 9</span><h2>Where MLOps fits</h2>
+    <p class="cap" style="font-size:15px">Machine learning systems follow the same loop with one big difference: three things change between releases instead of one. Switch between the two pipelines.</p></div>
+  <figure class="fig">
+    <div class="seg" id="mlSeg" role="group" aria-label="Choose a pipeline">
+      <button type="button" data-v="sw" aria-pressed="true">Software delivery</button><button type="button" data-v="ml" aria-pressed="false">ML delivery</button>
+    </div>
+    <div class="changes" id="mlChanges"></div>
+    <div class="scroll-x" style="padding-bottom:16px"><div class="mlpipe-wrap" id="mlPipe"></div></div>
+    <figcaption id="mlCap"></figcaption>
+  </figure>
+  <figure class="fig">
+    <div class="fig-title">Why a model decays with zero code changes</div>
+    <div class="scroll-x">
+      <svg id="driftSvg" viewBox="0 0 600 236" role="img" aria-label="Two distributions of one input feature: the training data the model learned from, and the live data it sees now. As months pass the live distribution drifts away and accuracy falls." style="width:100%;min-width:480px;height:auto;display:block"></svg>
+    </div>
+    <div class="drift-ctl">
+      <label for="driftSlider">Months since the model was last trained: <strong id="driftMonths">0</strong></label>
+      <input type="range" id="driftSlider" min="0" max="12" step="1" value="0">
+    </div>
+    <div class="stats" id="driftStats"></div>
+    <div class="controls"><button type="button" class="btn primary" id="driftRetrain">Retrain on recent data</button><span class="cap" id="driftNote"></span></div>
+    <figcaption>An illustrative model, not real data. Picture a fraud detector trained on last year's transactions. New shopping habits, new scams and a new payment method shift its inputs month by month. The code is identical; the world moved.</figcaption>
+  </figure>
+  <div class="prose">
+    <p>MLOps adds four things to the DevOps practices you'll learn first:</p>
+    <ul>
+      <li><strong>Data and model versioning</strong>, so any model can be traced to the exact code, data and settings that produced it (DVC, MLflow; Lesson 21).</li>
+      <li><strong>Training pipelines</strong> that run automatically and reproducibly, often on GPUs (Kubeflow, SageMaker Pipelines; Lesson 23).</li>
+      <li><strong>Model serving</strong> with its own scaling problems: batching, GPU memory, latency (KServe, vLLM, SageMaker endpoints; Lesson 22).</li>
+      <li><strong>Monitoring of inputs and predictions</strong>, not just uptime, so drift triggers retraining before it costs money (Lesson 23).</li>
+    </ul>
+    <p>For applications built on large language models (often called LLMOps), the same ideas apply to prompts, evaluation sets, retrieval indexes, token cost and latency. Lesson 23 covers them.</p>
+  </div>
+</section>
+
+<!-- PART 10 -->
+<section class="part" id="check">
+  <div class="part-head"><span class="part-no">Part 10</span><h2>Check yourself</h2>
+    <p class="cap" style="font-size:15px">Scenarios, not definitions. Each answer explains why the other options are wrong, which is where most of the learning is.</p></div>
+  <div class="fig-head"><span class="score" id="quizScore" aria-live="polite"></span><button type="button" class="btn" id="quizReset">Reset answers</button></div>
+  <div class="quiz" id="quiz"></div>
+</section>
+
+<!-- PART 11 -->
+<section class="part" id="next" style="border-bottom:0">
+  <div class="part-head"><span class="part-no">Part 11</span><h2>Before Lesson 02: Linux &amp; the Shell</h2>
+    <p class="cap" style="font-size:15px">Ticks are saved in this browser only.</p></div>
+  <ul class="checklist" id="checklist">
+    <li><input type="checkbox" id="chk-notes"><label for="chk-notes">Write <code>my-notes.md</code> for this lesson in your own words, before reading <code>notes.md</code>.<span class="sub">Explain the doom loop, the eight stages, and CI vs Delivery vs Deployment as if to a friend. Where you get stuck is your list of doubts.</span></label></li>
+    <li><input type="checkbox" id="chk-shell"><label for="chk-shell">Get a Linux shell.<span class="sub">Windows: open PowerShell as administrator, run <code>wsl --install</code>, restart, and finish the Ubuntu setup. macOS: Terminal works for Lesson 02, with differences flagged as we go. Linux: you're set.</span></label></li>
+    <li><input type="checkbox" id="chk-git"><label for="chk-git">Check that Git works: run <code>git --version</code>.<span class="sub">If it's missing: <code>sudo apt install git</code> on Ubuntu or WSL, <code>xcode-select --install</code> on macOS.</span></label></li>
+    <li><input type="checkbox" id="chk-aws"><label for="chk-aws">Don't create an AWS account yet.<span class="sub">Lesson 08 sets one up with MFA, no root access keys, and a billing alarm configured first. An unprotected account is the most expensive beginner mistake in this whole field.</span></label></li>
+    <li><input type="checkbox" id="chk-doubts"><label for="chk-doubts">Bring your doubts, then confirm you're ready for Lesson 02.<span class="sub">Starting points: Which stage of the loop does your current or last project handle worst? Where does the Delivery/Deployment line fall for a mobile app? If Kubernetes is overkill for small teams, why is it in so many job postings?</span></label></li>
+  </ul>
+  <footer class="lesson-foot">
+    <a href="../../README.md">Course roadmap</a>
+    <span>Next: Lesson 02, Linux &amp; the Shell</span>
+  </footer>
+</section>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+function $(id){ return document.getElementById(id); }
+function add(e, c){
+  if(c===null||c===undefined||c===false) return;
+  if(Array.isArray(c)){ c.forEach(function(x){ add(e,x); }); return; }
+  e.append(c.nodeType ? c : document.createTextNode(String(c)));
+}
+function h(tag, attrs){
+  var e=document.createElement(tag);
+  if(attrs){ Object.keys(attrs).forEach(function(k){
+    var v=attrs[k]; if(v===null||v===undefined||v===false) return;
+    if(k==="class") e.className=v;
+    else if(k==="text") e.textContent=v;
+    else if(k==="html") e.innerHTML=v;
+    else if(k.slice(0,2)==="on") e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v===true ? "" : String(v));
+  }); }
+  for(var i=2;i<arguments.length;i++) add(e, arguments[i]);
+  return e;
+}
+var SVGNS="http://www.w3.org/2000/svg";
+function sv(tag, attrs){
+  var e=document.createElementNS(SVGNS, tag);
+  if(attrs) Object.keys(attrs).forEach(function(k){ if(k==="text") e.textContent=attrs[k]; else e.setAttribute(k, attrs[k]); });
+  return e;
+}
+function fmtH(x){
+  if(x<=0) return "0 min";
+  if(x<1) return Math.max(1, Math.round(x*60))+" min";
+  if(x<48){ var r=Math.round(x*10)/10; return (r%1===0 ? r.toFixed(0) : r.toFixed(1))+" h"; }
+  var d=x/24; return (d<10 ? d.toFixed(1) : String(Math.round(d)))+" days";
+}
+function rand(n){ return Math.floor(Math.random()*n); }
+function pick(a){ return a[rand(a.length)]; }
+function seg(id, onPick){
+  var btns=$(id).querySelectorAll("button");
+  btns.forEach(function(b){ b.addEventListener("click", function(){
+    if(b.disabled) return;
+    btns.forEach(function(x){ x.setAttribute("aria-pressed", x===b ? "true" : "false"); });
+    onPick(b.getAttribute("data-v"));
+  }); });
+}
+function kv(k, v){ return h("div",{class:"kv"}, h("span",{class:"k",text:k}), h("p",{text:v})); }
+
+/* ---------- Part 2: simulator ---------- */
+var SIM={
+  trad:{ fail:0.35, recover:[24,72], batch:40,
+    steps:[
+      {who:"Dev", kind:"work", h:240, t:"Build the feature on a long-lived branch", d:"Weeks of work that nobody else sees yet."},
+      {who:"Dev", kind:"manual", h:48, t:"Merge with a month of everyone else's changes", d:"Conflicts everywhere. Teams call this merge hell."},
+      {who:"QA", kind:"wait", h:120, t:"Wait in the QA team's queue", d:"QA is still testing last month's release."},
+      {who:"QA", kind:"manual", h:96, t:"Manual regression test pass", d:"The same 300-step checklist as every release."},
+      {who:"Change board", kind:"wait", h:72, t:"Wait for the weekly change-approval meeting", d:"A committee decides whether the release may go out."},
+      {who:"Ops", kind:"wait", h:96, t:"Ops writes a runbook and books a weekend window", d:"Ops sees this code for the first time."},
+      {who:"Ops", kind:"manual", h:8, t:"Deploy by hand: SSH into 12 servers on Saturday night", d:"40 changes go live at once."}
+    ],
+    failText:"Checkout errors spike on Monday morning. 40 changes went out together, so nobody knows which one caused it. Dev and Ops argue about whose problem it is, then roll back by hand.",
+    okText:"It worked this time. Your change reached users along with 39 others, about a month after you started."
+  },
+  devops:{ fail:0.08, recover:[0.05,0.25], batch:1,
+    steps:[
+      {who:"Dev", kind:"work", h:6, t:"Write a small change on a short-lived branch", d:"A few hours of work, plus its tests."},
+      {who:"CI", kind:"auto", h:0.15, t:"Pipeline builds and tests the pull request", d:"Unit tests, lint and a security scan, in minutes."},
+      {who:"Team", kind:"manual", h:3, t:"A teammate reviews the pull request", d:"A small diff, so the review is quick and real."},
+      {who:"CI", kind:"auto", h:0.3, t:"Merge: build the image once, deploy to staging, run integration tests", d:"The same artifact moves forward from here."},
+      {who:"CD", kind:"auto", h:0.5, t:"Canary: release to 5% of users, watch error rates", d:"Automated checks compare the canary with the rest."},
+      {who:"CD", kind:"auto", h:0.2, t:"Roll out to 100% of users", d:"No meeting, no weekend, no SSH."}
+    ],
+    failText:"The canary's error rate jumps. The pipeline rolls back automatically within minutes, and only one small change is suspect, so the fix is obvious.",
+    okText:"Shipped. One small change is live for every user, and nobody had to stay late."
+  }
+};
+var KIND={work:"Work", manual:"Manual", wait:"Waiting", auto:"Automated"};
+var simMode="trad", simBusy=false;
+var tally={trad:{n:0,lead:0,fails:0,rec:0}, devops:{n:0,lead:0,fails:0,rec:0}};
+function totalH(m){ return m.steps.reduce(function(a,x){ return a+x.h; },0); }
+var SCALE=Math.max(totalH(SIM.trad), totalH(SIM.devops))*1.15;
+function simFacts(m){
+  var humans=m.steps.filter(function(x){ return x.kind!=="auto"; }), hand=0;
+  for(var i=1;i<humans.length;i++) if(humans[i].who!==humans[i-1].who) hand++;
+  return {
+    hand:hand,
+    manual:m.steps.filter(function(x){ return x.kind==="manual"; }).length,
+    wait:m.steps.filter(function(x){ return x.kind==="wait"; }).reduce(function(a,x){ return a+x.h; },0)
+  };
+}
+function setClock(v){ $("simClock").textContent=fmtH(v); $("simFill").style.width=Math.min(100, v/SCALE*100)+"%"; }
+function renderSim(){
+  var m=SIM[simMode], ol=$("simSteps"); ol.textContent="";
+  m.steps.forEach(function(st,i){
+    ol.append(h("li",{class:"step","data-kind":st.kind,id:"st"+i},
+      h("div",{class:"step-top"}, h("span",{class:"who",text:st.who}), h("span",{class:"pill "+st.kind,text:KIND[st.kind]})),
+      h("div",{class:"t",text:st.t}), h("div",{class:"d",text:st.d}), h("div",{class:"dur",text:"about "+fmtH(st.h)})));
+  });
+  var f=simFacts(m), box=$("simStats"); box.textContent="";
+  [["Handoffs between teams", String(f.hand)], ["Manual steps", String(f.manual)], ["Time waiting in queues", f.wait ? fmtH(f.wait) : "none"], ["Changes per deploy", String(m.batch)]].forEach(function(p){
+    box.append(h("div",{class:"stat"}, h("span",{class:"k",text:p[0]}), h("span",{class:"v",text:p[1]})));
+  });
+  setClock(0); var r=$("simResult"); r.textContent=""; r.className="sim-result";
+  $("simScaleMax").textContent=fmtH(SCALE);
+  renderTally();
+}
+function runOnce(m){
+  var durs=m.steps.map(function(x){ return x.h*(0.85+Math.random()*0.3); });
+  var lead=durs.reduce(function(a,b){ return a+b; },0);
+  var failed=Math.random()<m.fail;
+  var rec=failed ? m.recover[0]+Math.random()*(m.recover[1]-m.recover[0]) : 0;
+  return {durs:durs, lead:lead, failed:failed, rec:rec};
+}
+function record(k,r){ var t=tally[k]; t.n++; t.lead+=r.lead; if(r.failed){ t.fails++; t.rec+=r.rec; } }
+function tween(a,b,ms){
+  return new Promise(function(res){
+    if(!ms){ setClock(b); res(); return; }
+    var t0=performance.now();
+    function f(now){ var p=Math.min(1,(now-t0)/ms), e=1-Math.pow(1-p,2); setClock(a+(b-a)*e); if(p<1) requestAnimationFrame(f); else res(); }
+    requestAnimationFrame(f);
+  });
+}
+function setBusy(b){
+  simBusy=b; $("simRun").disabled=b; $("simRun10").disabled=b;
+  $("simSeg").querySelectorAll("button").forEach(function(x){ x.disabled=b; });
+}
+function showResult(m,r){
+  var el=$("simResult"); el.textContent=""; el.className="sim-result "+(r.failed ? "fail" : "ok");
+  if(r.failed) el.append(h("strong",{text:"Production incident. Lead time "+fmtH(r.lead)+", then recovery took "+fmtH(r.rec)+"."}), h("span",{text:m.failText}));
+  else el.append(h("strong",{text:"Success. Lead time "+fmtH(r.lead)+"."}), h("span",{text:m.okText}));
+}
+function animateRun(){
+  if(simBusy) return;
+  var m=SIM[simMode], k=simMode; renderSim(); setBusy(true);
+  var r=runOnce(m), cum=0, i=0;
+  function next(){
+    if(i>=m.steps.length){ record(k,r); showResult(m,r); renderTally(); setBusy(false); return; }
+    var li=$("st"+i); li.classList.add("active");
+    var from=cum; cum+=r.durs[i];
+    tween(from, cum, reduce ? 0 : 700).then(function(){
+      li.classList.remove("active"); li.classList.add("done");
+      li.querySelector(".dur").textContent="took "+fmtH(r.durs[i]);
+      i++; next();
+    });
+  }
+  next();
+}
+function runTen(){
+  if(simBusy) return;
+  var m=SIM[simMode], fails=0;
+  for(var i=0;i<10;i++){ var r=runOnce(m); record(simMode,r); if(r.failed) fails++; }
+  var el=$("simResult"); el.textContent=""; el.className="sim-result info";
+  el.append(h("strong",{text:"Ran 10 more deploys: "+fails+" caused an incident."}), h("span",{text:"Running totals are in the table below. Try both organizations and compare."}));
+  renderTally();
+}
+function renderTally(){
+  var t=$("simTally"); t.textContent="";
+  t.append(h("thead",null, h("tr",null, ["Organization","Deploys run","Avg lead time","Change failure rate","Avg recovery time"].map(function(x){ return h("th",{scope:"col",text:x}); }))));
+  var tb=h("tbody");
+  ["trad","devops"].forEach(function(k){
+    var d=tally[k];
+    tb.append(h("tr",null,
+      h("th",{scope:"row",text:k==="trad" ? "Traditional" : "DevOps"}),
+      h("td",{class:"num",text:String(d.n)}),
+      h("td",{class:"num",text:d.n ? fmtH(d.lead/d.n) : "—"}),
+      h("td",{class:"num",text:d.n ? Math.round(d.fails/d.n*100)+"%" : "—"}),
+      h("td",{class:"num",text:d.fails ? fmtH(d.rec/d.fails) : "—"})));
+  });
+  t.append(tb);
+}
+seg("simSeg", function(v){ if(simBusy) return; simMode=v; renderSim(); });
+$("simRun").addEventListener("click", animateRun);
+$("simRun10").addEventListener("click", runTen);
+renderSim();
+
+/* ---------- Part 4: delivery loop ---------- */
+var STAGES=[
+  {name:"Plan", side:"Dev",
+   one:"Decide the smallest change worth shipping, and how you'll know it worked.",
+   does:["Break work into small items that each deliver something","Define what done means and how success is measured","Prioritize using what Monitor revealed last time"],
+   key:"Plan in thin slices. A one-day task ships safely; a one-month epic doesn't. Batch size starts here, before any code exists.",
+   tools:"Jira, GitHub Issues, Linear", aws:"Nothing AWS-specific; most teams plan in GitHub or Jira.",
+   skip:"Work arrives as huge, vague projects, so batch size explodes before anyone writes a line of code.",
+   lessons:"Throughout the course; SLOs that drive planning in Lesson 19"},
+  {name:"Code", side:"Dev",
+   one:"Write the change, its tests and its configuration, all in version control.",
+   does:["Work on a short-lived branch, or directly on trunk","Commit small, focused changes","Open a pull request; a teammate reviews it","Infrastructure and pipeline definitions are code too"],
+   key:"If it isn't in Git, it doesn't exist. That includes servers, pipelines and dashboards.",
+   tools:"Git, GitHub, GitLab, VS Code, pre-commit hooks", aws:"Usually none. Code lives on GitHub or GitLab, and AWS connects to it.",
+   skip:"No history, no review, and no way back to the version that worked yesterday.",
+   lessons:"Lesson 04"},
+  {name:"Build", side:"Dev",
+   one:"Turn source code into one versioned, runnable artifact.",
+   does:["Install dependencies and compile or package the code","Build a container image","Tag it with a version or commit ID","Push it to a registry"],
+   key:"Build once, then deploy that same artifact everywhere. Rebuilding per environment means staging tested something production never runs.",
+   tools:"Docker, pip, npm, Maven, GitHub Actions", aws:"CodeBuild (build service), Amazon ECR (container registry)",
+   skip:"Works on my machine: each environment ends up running slightly different software.",
+   lessons:"Lessons 05 and 07"},
+  {name:"Test", side:"Dev",
+   one:"Prove the change works before users find out it doesn't.",
+   does:["Unit tests: fast, numerous, one piece at a time","Integration tests: services working together","Security and dependency scans","Linting and formatting checks"],
+   key:"The test pyramid: many fast unit tests, fewer slow end-to-end tests. Feedback within about ten minutes keeps developers in flow.",
+   tools:"pytest, Jest, JUnit, Trivy, SonarQube", aws:"CodeBuild runs the tests; Amazon Inspector scans images for vulnerabilities.",
+   skip:"QA becomes a manual queue measured in days, or bugs ship straight to users.",
+   lessons:"Lessons 05 and 18"},
+  {name:"Release", side:"Ops",
+   one:"Decide that a tested version is ready for users.",
+   does:["Tag a version (semantic versioning)","Pass an approval gate, if your process requires one","Write release notes","Use feature flags to decide who sees new code"],
+   key:"Deploying (the code is on servers) and releasing (users can see it) can be separated with feature flags. That split is what makes deploys boring.",
+   tools:"Git tags, GitHub Releases, LaunchDarkly, Unleash", aws:"AWS AppConfig (feature flags and runtime configuration)",
+   skip:"Every deploy is also a launch, so every deploy is scary.",
+   lessons:"Lessons 05 and 19"},
+  {name:"Deploy", side:"Ops",
+   one:"Put the artifact onto infrastructure without dropping users.",
+   does:["Create or update infrastructure from code","Roll out using a rolling, blue/green or canary strategy","Check health before sending traffic","Roll back automatically if checks fail"],
+   key:"Deploys should be boring, repeatable and reversible. If rollback is a manual procedure, it's a plan to fail slowly.",
+   tools:"Kubernetes, Helm, Argo CD, Terraform", aws:"ECS, EKS, CodeDeploy, CloudFormation",
+   skip:"Someone SSHes into servers at 2 a.m. and follows a 40-step runbook.",
+   lessons:"Lessons 11, 12, 15 and 16"},
+  {name:"Operate", side:"Ops",
+   one:"Keep the service running, scaled, patched and affordable.",
+   does:["Scale automatically with load","Patch operating systems and dependencies","Back up data and practice restoring it","Respond to incidents through on-call","Manage cost"],
+   key:"You build it, you run it: the team that wrote the code is on call for it, so they feel its pain and fix root causes.",
+   tools:"Kubernetes autoscalers, Ansible, PagerDuty", aws:"Auto Scaling, Systems Manager, AWS Backup, Cost Explorer",
+   skip:"Outages last hours because nobody understands the system or has access to it.",
+   lessons:"Lessons 10, 15 and 19"},
+  {name:"Monitor", side:"Ops",
+   one:"Know what users are experiencing, and feed it back into planning.",
+   does:["Metrics: request rate, errors, latency","Logs: what happened, event by event","Traces: one request's path across services","Alerts and dashboards; service level objectives"],
+   key:"Alert on symptoms users feel (errors, slowness), not on every possible cause (CPU at 80%). Then close the loop: what you learn here becomes the next Plan.",
+   tools:"Prometheus, Grafana, OpenTelemetry, Loki", aws:"CloudWatch (metrics, logs, alarms), AWS X-Ray (tracing)",
+   skip:"Your customers become your monitoring system.",
+   lessons:"Lessons 17 and 23"}
+];
+var loopSel=0;
+function renderStage(){
+  var st=STAGES[loopSel], el=$("loopDetail"); el.textContent="";
+  el.append(
+    h("div",{class:"ld-col"},
+      h("div",{class:"ld-head"}, h("span",{class:"eyebrow",text:"Stage "+(loopSel+1)+" of 8 · "+st.side+" side"}), h("h3",{text:st.name}), h("p",{class:"ld-one",text:st.one})),
+      h("div",{class:"kv"}, h("span",{class:"k",text:"What happens here"}), h("ul",{class:"ld-list"}, st.does.map(function(x){ return h("li",{text:x}); })))),
+    h("div",{class:"ld-col"},
+      h("div",{class:"keyidea"}, h("span",{class:"label",text:"Key idea"}), h("p",{text:st.key})),
+      kv("Common tools", st.tools), kv("On AWS", st.aws), kv("When this stage is weak", st.skip), kv("Go deeper in", st.lessons)));
+}
+function selectStage(i, focus){
+  loopSel=i;
+  $("loopNodes").querySelectorAll(".loop-node").forEach(function(g){ g.setAttribute("aria-pressed", g.getAttribute("data-i")===String(i) ? "true" : "false"); });
+  renderStage();
+  if(focus){ var n=$("loopNodes").querySelector('[data-i="'+i+'"]'); if(n) n.focus(); }
+}
+function buildLoop(){
+  var path=$("loopPath"), L=path.getTotalLength(), marks=$("loopMarks"), nodes=$("loopNodes");
+  [1,2,3,5,6,7].forEach(function(i){
+    var d=i/8*L, p=path.getPointAtLength(d), q=path.getPointAtLength(Math.min(L,d+1));
+    var ang=Math.atan2(q.y-p.y, q.x-p.x)*180/Math.PI;
+    marks.append(sv("polygon",{points:"-6,-5 6,0 -6,5", class:"loop-mark", transform:"translate("+p.x.toFixed(1)+" "+p.y.toFixed(1)+") rotate("+ang.toFixed(1)+")"}));
+  });
+  STAGES.forEach(function(st,i){
+    var p=path.getPointAtLength((1/16+i/8)*L);
+    var g=sv("g",{class:"loop-node", tabindex:"0", role:"button", "aria-label":st.name+". "+st.one, "aria-pressed":i===loopSel ? "true" : "false", "data-i":String(i)});
+    g.append(sv("circle",{cx:p.x.toFixed(1), cy:p.y.toFixed(1), r:"34"}));
+    g.append(sv("text",{x:p.x.toFixed(1), y:(p.y+5).toFixed(1), "text-anchor":"middle", text:st.name}));
+    g.addEventListener("click", function(){ selectStage(i); });
+    g.addEventListener("keydown", function(e){
+      if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectStage(i); }
+      else if(e.key==="ArrowRight"||e.key==="ArrowDown"){ e.preventDefault(); selectStage((i+1)%8, true); }
+      else if(e.key==="ArrowLeft"||e.key==="ArrowUp"){ e.preventDefault(); selectStage((i+7)%8, true); }
+    });
+    nodes.append(g);
+  });
+  var dot=$("loopDot");
+  if(reduce){ dot.setAttribute("display","none"); }
+  else {
+    var am=sv("animateMotion",{dur:"16s", repeatCount:"indefinite"});
+    var mp=sv("mpath"); mp.setAttribute("href","#loopPath"); mp.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href","#loopPath");
+    am.append(mp); dot.append(am);
+  }
+  renderStage();
+}
+buildLoop();
+
+/* ---------- Part 5: CI / CD / CD ---------- */
+var PIPE=["Commit & merge","Build","Unit tests","Integration tests","Deploy to staging","Acceptance tests","Deploy to production"];
+var CDM={
+  ci:{auto:4, gate:false,
+    one:"Everyone merges to the main branch at least daily, and every merge is built and tested automatically.",
+    prod:"Nobody, automatically. Deploying is a separate, mostly manual process.",
+    use:"Always. It's the minimum for any team that writes code together.",
+    need:"Automated tests, a fast pipeline, and the habit of small, frequent merges."},
+  delivery:{auto:7, gate:true,
+    one:"Every change that passes is deployed to staging automatically and is always ready for production. Going live is one button.",
+    prod:"A person decides when; automation does the rest.",
+    use:"When a business or legal decision must time the release: banks, healthcare, app-store releases, coordinated launches.",
+    need:"Everything in CI, plus automated deploys and a staging environment that resembles production."},
+  deployment:{auto:7, gate:false,
+    one:"Every change that passes the pipeline goes to production with no human step at all.",
+    prod:"The pipeline itself.",
+    use:"Web services where tests and monitoring catch problems faster than a human reviewer would.",
+    need:"Everything in Delivery, plus strong automated tests, canary releases, automatic rollback and feature flags."}
+};
+function renderPipe(mode){
+  var m=CDM[mode], p=$("pipe"); p.textContent="";
+  PIPE.forEach(function(name,i){
+    if(i>0){
+      if(m.gate && i===6) p.append(h("div",{class:"gate"}, "A person approves"));
+      else p.append(h("div",{class:"parrow","aria-hidden":"true",text:"→"}));
+    }
+    var auto=i<m.auto;
+    var sub=auto ? (mode==="delivery" && i===6 ? "automated, after approval" : "automated") : "by hand, later";
+    p.append(h("div",{class:"pstage "+(auto ? "auto" : "manual")}, h("span",{text:name}), h("small",{text:sub})));
+  });
+  var d=$("cdDetail"); d.textContent="";
+  d.append(kv("In one sentence", m.one), kv("Who sends it to production", m.prod), kv("Use it when", m.use), kv("You need first", m.need));
+}
+seg("cdSeg", renderPipe);
+renderPipe("ci");
+
+/* ---------- Part 6: drift ---------- */
+var MANUAL=["pip install requests==2.31 (urgent bug fix)","nginx.conf: timeout 60s to 120s","apt upgrade openssl (security patch)","cron job that deletes old logs","chmod 777 /var/app (\"temporary\")","FEATURE_X=on added to .bashrc"];
+var fleet, image, dlog;
+function dReset(){
+  image={v:1, includes:[]};
+  fleet=[1,2,3,4].map(function(n){ return {name:"web-"+n, manual:[], flash:false}; });
+  dlog=["Four servers built from image v1. All identical."];
+  renderFleet();
+}
+function dLog(t){ dlog.unshift(t); if(dlog.length>6) dlog.pop(); }
+function dPatch(){
+  var s=fleet[rand(4)];
+  var opts=MANUAL.filter(function(f){ return s.manual.indexOf(f)<0 && image.includes.indexOf(f)<0; });
+  if(!opts.length){ dLog("Every hand-fix is already on "+s.name+". Try a crash or put the fixes in code."); renderFleet(); return; }
+  var f=pick(opts); s.manual.push(f);
+  dLog("Someone SSHed into "+s.name+" and applied: "+f+". It isn't in any code, review or ticket.");
+  renderFleet();
+}
+function dCrash(){
+  var s=fleet[rand(4)], lost=s.manual.slice();
+  s.manual=[]; s.flash=true;
+  dLog(lost.length
+    ? s.name+" crashed and was replaced from image v"+image.v+". Lost with it: "+lost.join("; ")+". If that was a fix, the bug is back, and nothing records that it ever existed."
+    : s.name+" crashed and was replaced from image v"+image.v+". Nothing was lost, because nothing on it was made by hand.");
+  renderFleet();
+}
+function dCode(){
+  var all=[];
+  fleet.forEach(function(s){ s.manual.forEach(function(f){ if(all.indexOf(f)<0) all.push(f); }); });
+  if(!all.length){ dLog("Nothing to put in code: every server already matches image v"+image.v+"."); renderFleet(); return; }
+  image={v:image.v+1, includes:image.includes.concat(all)};
+  fleet.forEach(function(s){ s.manual=[]; s.flash=true; });
+  dLog("The fixes were written into code, reviewed and merged: "+all.join("; ")+". Image v"+image.v+" built, and all four servers replaced. Identical again.");
+  renderFleet();
+}
+function renderFleet(){
+  var box=$("fleet"); box.textContent="";
+  fleet.forEach(function(s){
+    var drift=s.manual.length>0;
+    var el=h("div",{class:"server"+(drift ? " drifted" : "")+(s.flash ? " flash" : "")},
+      h("div",{class:"nm"}, h("span",{text:s.name}), h("span",{class:"st "+(drift ? "bad" : "ok"),text:drift ? "drifted" : "matches"})),
+      h("div",{class:"cap",text:"built from image v"+image.v}),
+      drift ? h("ul",null, s.manual.map(function(f){ return h("li",{text:f}); })) : h("span",{class:"none",text:"No hand-made changes"}));
+    box.append(el); s.flash=false;
+  });
+  var matching=fleet.filter(function(s){ return !s.manual.length; }).length;
+  var hand=fleet.reduce(function(a,s){ return a+s.manual.length; },0);
+  var st=$("dStats"); st.textContent="";
+  st.append(
+    h("div",{class:"stat"}, h("span",{class:"k",text:"Servers matching their image"}), h("span",{class:"v "+(matching===4 ? "good" : "meh"),text:matching+" of 4"})),
+    h("div",{class:"stat"}, h("span",{class:"k",text:"Untracked hand-made changes"}), h("span",{class:"v "+(hand ? "meh" : "good"),text:String(hand)})),
+    h("div",{class:"stat"}, h("span",{class:"k",text:"Rebuildable from code right now?"}), h("span",{class:"v "+(hand ? "bad" : "good"),text:hand ? "No" : "Yes"})),
+    h("div",{class:"stat"}, h("span",{class:"k",text:"Fixes captured in code"}), h("span",{class:"v",text:String(image.includes.length)})));
+  var lg=$("dlog"); lg.textContent=""; dlog.forEach(function(t){ lg.append(h("li",{text:t})); });
+}
+$("dPatch").addEventListener("click", dPatch);
+$("dCrash").addEventListener("click", dCrash);
+$("dCode").addEventListener("click", dCode);
+$("dReset").addEventListener("click", dReset);
+dReset();
+
+/* ---------- Part 7: tool map ---------- */
+var TOOLS={
+  mlflow:{name:"MLflow", kind:"ML experiment tracking and model registry · open source",
+    solves:"Records every training run (code version, parameters, metrics, model files) and keeps a registry of approved model versions ready to deploy.",
+    use:"More than one person trains models, or any model is headed to production.",
+    skip:"One-off exploration in a notebook.",
+    confusion:"MLflow tracks and versions models, not large datasets. DVC or a data lake versions the data.", lesson:"Lesson 21"},
+  sagemaker:{name:"SageMaker", aws:true, kind:"AWS managed ML platform (now branded SageMaker AI)",
+    solves:"Managed notebooks, training jobs on GPU clusters, model hosting endpoints, pipelines and model monitoring, without assembling the pieces yourself.",
+    use:"You're on AWS and want managed ML infrastructure instead of building it on Kubernetes.",
+    skip:"You already run a mature Kubernetes platform and want portability, or the model is small enough to serve from a plain container.",
+    confusion:"SageMaker is a family of services, not one product. Training jobs, endpoints and pipelines are configured and billed separately.", lesson:"Lessons 22 and 23"},
+  k8s:{name:"Kubernetes", kind:"Container orchestrator · open source (CNCF)",
+    solves:"Runs containers across a fleet of machines: decides where each one goes, restarts crashed ones, scales them, rolls out new versions, and gives them stable network names.",
+    use:"Many services, several teams, or a need for its ecosystem: operators, GPU scheduling for ML, portability across clouds.",
+    skip:"One to a few services and a small team. ECS on Fargate, or one VM running Docker Compose, does the job with a fraction of the operating effort.",
+    confusion:"Kubernetes doesn't build images; it runs images someone else built. It also isn't a complete platform: you still assemble networking, storage, monitoring and security.", lesson:"Lessons 13 to 16"},
+  eks:{name:"Amazon EKS", aws:true, kind:"AWS managed Kubernetes",
+    solves:"AWS runs the Kubernetes control plane (the cluster's brain) with high availability and handles its upgrades. Your workloads run on nodes that AWS can also manage.",
+    use:"You've decided you need Kubernetes, and you're on AWS.",
+    skip:"You haven't yet decided you need Kubernetes. EKS adds an hourly fee per cluster on top of the full Kubernetes learning curve.",
+    confusion:"EKS is standard upstream Kubernetes, so the skills transfer to Google's GKE, Azure's AKS and self-managed clusters.", lesson:"Lesson 16"},
+  ecs:{name:"Amazon ECS / Fargate", aws:true, kind:"AWS container orchestrator, plus serverless compute for containers",
+    solves:"ECS runs and scales containers with far fewer concepts than Kubernetes. Fargate removes the servers: you ask for three copies of an image with 1 vCPU each, and AWS finds the machines.",
+    use:"You want containers on AWS without operating Kubernetes. A sensible default for small and mid-size teams.",
+    skip:"You need to run on other clouds too, or you need the Kubernetes ecosystem.",
+    confusion:"Fargate is not a separate orchestrator. It's a compute option that both ECS and EKS can use instead of EC2 instances.", lesson:"Lesson 11"},
+  helm:{name:"Helm", kind:"Kubernetes package manager · open source (CNCF)",
+    solves:"Templates Kubernetes configuration, so one chart deploys an app to dev, staging and production with different values. Also installs third-party software (databases, monitoring) in one command.",
+    use:"You have more than a handful of Kubernetes manifests, or you install community software.",
+    skip:"You aren't on Kubernetes. Some teams prefer Kustomize, built into kubectl, for simple overlays.",
+    confusion:"Helm doesn't run anything. It produces YAML and hands it to Kubernetes.", lesson:"Lesson 15"},
+  docker:{name:"Docker", kind:"Container image build and run tooling",
+    solves:"Packages an app with its exact dependencies into an image that runs the same on a laptop, a CI runner and a production server.",
+    use:"You hit works-on-my-machine bugs, you need identical environments, or you deploy to ECS or Kubernetes.",
+    skip:"A static website (S3 plus a CDN is simpler), or a small Lambda function (a zip upload is fine).",
+    confusion:"An image is the recipe: read-only and versioned. A container is one running instance of it. The relationship is like a class and its objects.", lesson:"Lessons 06 and 07"},
+  linux:{name:"Linux", kind:"Operating system",
+    solves:"Nearly every server, container and cloud VM runs Linux. You operate it through the shell: files, processes, permissions, logs, networking.",
+    use:"Always. This is the floor everything else stands on.",
+    skip:"Never. Even serverless runs on Linux; you just stop seeing it until something goes wrong.",
+    confusion:"A container is not a small Linux installation. Containers share the host's Linux kernel, which is why they start in milliseconds.", lesson:"Lesson 02"},
+  ec2:{name:"EC2", aws:true, kind:"AWS virtual machines",
+    solves:"Rents virtual servers by the second, from tiny burstable machines to multi-GPU training boxes.",
+    use:"You need full OS control, long-running processes or specific GPUs, or you're moving a legacy app as it is. EC2 is also the machine under ECS and EKS nodes.",
+    skip:"Your app fits a container service or Lambda, where patching the OS becomes AWS's job.",
+    confusion:"Treat instances as disposable. Instance-store disks lose their data when the instance stops; durable data belongs on EBS volumes, S3 or a database.", lesson:"Lesson 10"},
+  vpc:{name:"VPC", aws:true, kind:"AWS private network",
+    solves:"Your own isolated network inside AWS: IP ranges, public and private subnets, route tables, gateways and firewall rules.",
+    use:"Always. Everything you launch lives in one, even if you're using the default VPC without noticing.",
+    skip:"Never. Beginners can start in the default VPC and learn to design one in Lesson 09.",
+    confusion:"A security group is a stateful firewall attached to an instance or service, not to a subnet. Network ACLs are the stateless, subnet-level kind.", lesson:"Lesson 09"},
+  s3:{name:"S3", aws:true, kind:"AWS object storage",
+    solves:"Stores any amount of files (objects) and is designed for 99.999999999% durability: backups, logs, static websites, data lakes, ML datasets and model files.",
+    use:"Anything file-shaped that isn't a live database. It's the default home for ML data on AWS.",
+    skip:"You need a filesystem many servers mount and edit in place (use EFS), or fast transactional data (use a database).",
+    confusion:"S3 isn't a disk. You replace whole objects; you can't edit byte 500 of a file. Its folders are only name prefixes.", lesson:"Lesson 10"},
+  lambda:{name:"Lambda", aws:true, kind:"AWS serverless functions",
+    solves:"Runs your function when an event happens (an HTTP request, a file upload, a queue message, a schedule) and bills per request and per millisecond. No servers to manage, and it scales to zero.",
+    use:"Event-driven glue, spiky or low-traffic APIs, scheduled jobs.",
+    skip:"Jobs longer than 15 minutes, steady high traffic (containers become cheaper), GPU inference, or anything that needs warm in-memory state.",
+    confusion:"Serverless still has servers; AWS runs them. You trade control (runtime, time limit, cold starts) for zero maintenance.", lesson:"Lesson 10"},
+  git:{name:"Git", kind:"Version control · open source",
+    solves:"Records every change to code, infrastructure and pipeline configuration, lets many people work in parallel, and can return to any past version.",
+    use:"Always, for everything that defines your system.",
+    skip:"Never.",
+    confusion:"Git is the tool. GitHub and GitLab are services that host Git repositories and add pull requests, CI and issue tracking.", lesson:"Lesson 04"},
+  gha:{name:"GitHub Actions", kind:"CI/CD service",
+    solves:"Runs workflows (build, test, scan, deploy) automatically when something happens in a repository: a push, a pull request, a tag, a schedule.",
+    use:"Your code is on GitHub and you want pipelines without running CI servers yourself.",
+    skip:"Your company standardizes on GitLab CI or Jenkins. The concepts transfer almost one to one.",
+    confusion:"Jenkins is self-hosted and endlessly pluggable, which also means you maintain it. Hosted CI such as Actions or GitLab CI is the modern default.", lesson:"Lesson 05"},
+  argocd:{name:"Argo CD", kind:"GitOps controller for Kubernetes · open source (CNCF)",
+    solves:"Watches a Git repository of Kubernetes configuration and keeps the cluster matching it. Git becomes the only way to change production.",
+    use:"You run Kubernetes and want every change auditable, reviewable and automatically reconciled.",
+    skip:"You don't run Kubernetes.",
+    confusion:"CI pushes: it builds and tests the artifact. Argo CD pulls: the cluster fetches its desired state from Git. Many teams use both.", lesson:"Lesson 16"},
+  terraform:{name:"Terraform", kind:"Infrastructure as Code · HashiCorp (OpenTofu is the open-source fork)",
+    solves:"You declare the infrastructure you want (networks, servers, databases, DNS) in code. Terraform shows a plan of the changes, then makes reality match it.",
+    use:"Any cloud setup you'll need to reproduce, review or rebuild. Works with AWS, Azure, Google Cloud, Cloudflare, GitHub and hundreds more.",
+    skip:"Throwaway experiments. AWS-only teams sometimes choose CloudFormation or the AWS CDK instead.",
+    confusion:"Terraform creates infrastructure; Ansible configures the software inside servers. Terraform also keeps a state file that maps your code to real resources, and protecting it is part of the job.", lesson:"Lesson 12"},
+  ansible:{name:"Ansible", kind:"Configuration management · open source (Red Hat)",
+    solves:"Connects to servers over SSH and makes them match a described configuration: packages, files, users, services. There's no agent to install.",
+    use:"Fleets of long-lived VMs, network devices, or on-premises servers.",
+    skip:"Container-first setups, where the Dockerfile and image already define what's inside.",
+    confusion:"A well-written playbook is idempotent: running it twice changes nothing the second time. That property matters more than the tool.", lesson:"Lesson 12, briefly"},
+  prom:{name:"Prometheus & Grafana", kind:"Metrics and dashboards · open source",
+    solves:"Prometheus collects numeric metrics (request rate, errors, latency, memory) from your services every few seconds, stores them as time series, and evaluates alert rules. Grafana draws dashboards from it and many other sources.",
+    use:"The default monitoring stack for Kubernetes and cloud-native systems.",
+    skip:"Small AWS-only setups can start with CloudWatch alone.",
+    confusion:"Metrics, logs and traces are different signals. Prometheus handles metrics only; logs need something like Loki or CloudWatch Logs.", lesson:"Lesson 17"},
+  cloudwatch:{name:"CloudWatch", aws:true, kind:"AWS monitoring",
+    solves:"Collects metrics and logs from AWS services automatically, plus your own, with alarms and dashboards.",
+    use:"Anything on AWS. You'll use it even alongside Prometheus, because AWS services report there.",
+    skip:"Rarely skipped on AWS, but many teams pair it with Grafana for richer dashboards across clouds.",
+    confusion:"Default EC2 metrics don't include memory or disk usage. Those need the CloudWatch agent installed on the instance.", lesson:"Lesson 17"},
+  iam:{name:"IAM", aws:true, kind:"AWS identity and access management",
+    solves:"Decides who (users, roles, services) can do what (actions) on which resources. Every AWS API call is checked against IAM.",
+    use:"From the first minute you have an AWS account.",
+    skip:"Never. Misconfigured permissions are among the most common causes of cloud security incidents.",
+    confusion:"Prefer roles, which hand out temporary credentials, over users with long-lived access keys. Keys leaked to a public GitHub repo get found and abused within minutes.", lesson:"Lesson 08"}
+};
+var LAYERS=[
+  {name:"Application & ML", desc:"Your services, APIs and models", tools:["mlflow","sagemaker"]},
+  {name:"Orchestration", desc:"Runs many containers across many machines", tools:["k8s","eks","ecs","helm"]},
+  {name:"Packaging", desc:"Your app plus its dependencies, as one unit", tools:["docker"]},
+  {name:"Operating system", desc:"What every server and container runs on", tools:["linux"]},
+  {name:"Cloud infrastructure", desc:"Rented compute, network and storage", tools:["ec2","vpc","s3","lambda"]},
+  {name:"Physical hardware", desc:"AWS data centers, grouped into Regions and Availability Zones. You never touch this layer directly.", tools:[], base:true}
+];
+var RAILS=[
+  {name:"Version control", tools:["git"]},
+  {name:"CI/CD", tools:["gha","argocd"]},
+  {name:"Infrastructure as Code", tools:["terraform","ansible"]},
+  {name:"Observability", tools:["prom","cloudwatch"]},
+  {name:"Security & access", tools:["iam"]}
+];
+var toolSel="docker";
+function chip(id){
+  var t=TOOLS[id];
+  return h("button",{type:"button", class:"chip", "data-tool":id, "aria-pressed":id===toolSel ? "true" : "false", onclick:function(){ selectTool(id); }},
+    t.name, t.aws ? h("span",{class:"aws",text:"AWS"}) : null);
+}
+function buildMap(){
+  var st=$("stack");
+  LAYERS.forEach(function(L){
+    st.append(h("div",{class:"layer"+(L.base ? " base" : "")},
+      h("span",{class:"layer-name",text:L.name}), h("span",{class:"layer-desc",text:L.desc}),
+      L.tools.length ? h("div",{class:"chips"}, L.tools.map(chip)) : null));
+  });
+  var rl=$("rails");
+  RAILS.forEach(function(R){ rl.append(h("div",{class:"rail"}, h("span",{class:"layer-name",text:R.name}), h("div",{class:"chips"}, R.tools.map(chip)))); });
+  renderTool();
+}
+function selectTool(id){
+  toolSel=id;
+  document.querySelectorAll(".chip[data-tool]").forEach(function(c){ c.setAttribute("aria-pressed", c.getAttribute("data-tool")===id ? "true" : "false"); });
+  renderTool();
+}
+function renderTool(){
+  var t=TOOLS[toolSel], c=$("toolCard"); c.textContent="";
+  c.append(
+    h("div",{class:"ld-head"}, h("span",{class:"eyebrow",text:t.kind}), h("h3",{text:t.name})),
+    h("div",{class:"tool-grid"}, kv("Problem it solves", t.solves), kv("Reach for it when", t.use), kv("You don't need it when", t.skip), kv("Common confusion", t.confusion)),
+    h("p",{class:"cap",text:"Covered in "+t.lesson+"."}));
+}
+buildMap();
+
+/* ---------- Part 8: decision tree ---------- */
+var TREE={
+  q1:{short:"Short and event-driven?",
+    q:"Does the app run only when something happens (an HTTP call, a file upload, a queue message, a schedule), finish within 15 minutes, and sit idle much of the time?",
+    hint:"Examples: resize an image when it's uploaded, handle a payment webhook, build a nightly report.",
+    a:[{t:"Yes: short runs, triggered by events", to:"lambda"}, {t:"No: it runs continuously, or for a long time", to:"q2"}]},
+  q2:{short:"Fits in a container?",
+    q:"Can it be packaged as a container image?",
+    hint:"Most modern web apps, APIs and workers can. The exceptions: software that needs a specific kernel or OS, licenses tied to one machine, or legacy code you can't change yet.",
+    a:[{t:"Yes, it can be containerized", to:"q3"}, {t:"No, it needs the whole machine", to:"ec2"}]},
+  q3:{short:"Size and team?",
+    q:"How big is the system, and who will run the platform?",
+    hint:"Count people as well as traffic. A platform needs owners.",
+    a:[{t:"One to a handful of services, small team", to:"ecs"}, {t:"Dozens of services, several teams, or needs only Kubernetes meets", to:"eks"}]},
+  lambda:{result:true, title:"Serverless functions: AWS Lambda",
+    why:"Short, event-driven, bursty work is exactly what Lambda is built for. You pay nothing while it's idle, and it scales up to meet bursts on its own.",
+    watch:"The 15-minute limit, cold starts on the first request after an idle period, and cost that overtakes containers once traffic is steady and high.",
+    resp:[["Physical hardware","aws"],["Operating system & patches","aws"],["Runtime & scaling","aws"],["Your code & settings","you"]]},
+  ec2:{result:true, title:"Virtual machines: Amazon EC2 with Auto Scaling",
+    why:"You need the whole machine: a particular OS, a kernel module, licensed software, or a legacy app you can't containerize yet.",
+    watch:"OS patching, security hardening and scaling rules are yours. Build machines from images (AMIs) defined in code, never by hand, so they stay cattle.",
+    resp:[["Physical hardware","aws"],["Operating system & patches","you"],["Runtime & scaling","shared"],["Your code & settings","you"]]},
+  ecs:{result:true, title:"Managed containers: Amazon ECS on Fargate",
+    why:"Containers give you portable, reproducible packaging, and Fargate removes the servers. For most small and mid-size teams this has the best ratio of effort to value.",
+    watch:"A smaller ecosystem than Kubernetes, and AWS-specific. For a hobby project, one small EC2 instance running Docker Compose is cheaper still.",
+    resp:[["Physical hardware","aws"],["Operating system & patches","aws"],["Runtime & scaling","shared"],["Your code & settings","you"]]},
+  eks:{result:true, title:"Kubernetes: Amazon EKS",
+    why:"At dozens of services and several teams, a shared platform, Kubernetes' ecosystem and its GPU scheduling for ML justify the complexity.",
+    watch:"A real platform needs owners: upgrades, networking, add-ons, security and cost. Budget people for it, not just money.",
+    resp:[["Physical hardware","aws"],["Operating system & patches","shared"],["Runtime & scaling","shared"],["Your code & settings","you"]]}
+};
+var WHO={aws:"AWS", you:"You", shared:"Shared"};
+var tpath=["q1"], tans=[];
+function renderTree(){
+  var tr=$("trail"); tr.textContent="";
+  tans.forEach(function(a){ tr.append(h("li",null, a.q+" ", h("b",{text:a.a}))); });
+  if(!tans.length) tr.append(h("li",{text:"Question 1 of up to 3"}));
+  var cur=TREE[tpath[tpath.length-1]], body=$("treeBody"); body.textContent="";
+  if(cur.result){
+    body.append(h("div",{class:"result"},
+      h("span",{class:"rk",text:"Recommended starting point"}), h("h3",{text:cur.title}),
+      h("div",{class:"tool-grid"}, kv("Why it fits", cur.why), kv("Watch out for", cur.watch)),
+      h("div",{class:"kv"}, h("span",{class:"k",text:"Who manages what"}),
+        h("div",{class:"resp"}, cur.resp.map(function(r){ return h("div",{class:"resp-row"}, h("span",{text:r[0]}), h("span",{class:"who "+r[1],text:WHO[r[1]]})); })))));
+  } else {
+    body.append(h("div",{style:"display:grid;gap:12px"},
+      h("p",{class:"tq",text:cur.q}), h("p",{class:"thint",text:cur.hint}),
+      h("div",{class:"answers"}, cur.a.map(function(a){
+        return h("button",{type:"button", class:"answer", onclick:function(){ tans.push({q:cur.short, a:a.t.split(":")[0].split(",")[0]}); tpath.push(a.to); renderTree(); }}, a.t);
+      }))));
+  }
+  $("treeBack").disabled=tpath.length<2;
+}
+$("treeBack").addEventListener("click", function(){ if(tpath.length>1){ tpath.pop(); tans.pop(); renderTree(); } });
+$("treeReset").addEventListener("click", function(){ tpath=["q1"]; tans=[]; renderTree(); });
+renderTree();
+
+/* ---------- Part 9: MLOps ---------- */
+var MLP={
+  sw:{changes:["code"],
+    steps:[["Code","code"],["Build","code"],["Test","code"],["Deploy","code"],["Monitor","uptime, errors"]],
+    cap:"In ordinary software only the code changes between releases. If nobody touches the code, the system behaves the same tomorrow as it does today."},
+  ml:{changes:["code","data","model"], loop:true,
+    steps:[["Collect data","data"],["Validate data","data"],["Train","code + data"],["Evaluate","model"],["Register model","model"],["Deploy & serve","model"],["Monitor drift & quality","data + model"]],
+    cap:"In ML, the data and the model change too, and each needs versioning, testing and monitoring. Training is an expensive, non-deterministic build step, and monitoring can trigger a new training run with no human writing code."}
+};
+var ML_NEW={"Collect data":1,"Validate data":1,"Train":1,"Evaluate":1,"Register model":1,"Monitor drift & quality":1};
+function renderML(mode){
+  var m=MLP[mode], c=$("mlChanges"); c.textContent="";
+  c.append(h("span",{class:"cap",text:"What changes between releases:"}));
+  ["code","data","model"].forEach(function(k){ c.append(h("span",{class:"chg "+(m.changes.indexOf(k)>=0 ? "on" : "off"),text:k})); });
+  var w=$("mlPipe"); w.textContent="";
+  var row=h("div",{class:"mlpipe"});
+  m.steps.forEach(function(s,i){
+    if(i>0) row.append(h("div",{class:"parrow","aria-hidden":"true",text:"→"}));
+    row.append(h("div",{class:"mstep"+(mode==="ml" && ML_NEW[s[0]] ? " new" : "")}, h("span",{text:s[0]}), h("small",{text:"versions: "+s[1]})));
+  });
+  w.append(row);
+  if(m.loop) w.append(h("div",{class:"loopback"}, h("span",{text:"RETRAIN WHEN MONITORING DETECTS DRIFT"})));
+  $("mlCap").textContent=m.cap+(mode==="ml" ? " Highlighted steps don't exist in ordinary software delivery." : "");
+}
+seg("mlSeg", renderML);
+renderML("sw");
+
+/* drift chart */
+var trainMean=0, months=0;
+var X0=40, X1=580, BASE=196, DMIN=-4, DMAX=7, YS=380;
+function xp(v){ return X0+(v-DMIN)/(DMAX-DMIN)*(X1-X0); }
+function pdf(v,m){ return Math.exp(-0.5*(v-m)*(v-m))/Math.sqrt(2*Math.PI); }
+function curve(m, closed){
+  var d="", n=120;
+  for(var i=0;i<=n;i++){ var v=DMIN+(DMAX-DMIN)*i/n; d+=(i ? " L" : "M")+xp(v).toFixed(1)+" "+(BASE-pdf(v,m)*YS).toFixed(1); }
+  if(closed) d+=" L"+X1+" "+BASE+" L"+X0+" "+BASE+" Z";
+  return d;
+}
+var drTrain, drLive;
+function buildDrift(){
+  var svg=$("driftSvg");
+  drTrain=sv("path",{class:"drift-train"}); drLive=sv("path",{class:"drift-live"});
+  svg.append(drTrain, drLive, sv("line",{class:"axis", x1:X0, y1:BASE, x2:X1, y2:BASE}));
+  [-3,0,3,6].forEach(function(v){
+    svg.append(sv("line",{class:"axis", x1:xp(v), y1:BASE, x2:xp(v), y2:BASE+5}));
+    svg.append(sv("text",{class:"tick", x:xp(v), y:BASE+18, "text-anchor":"middle", text:String(v)}));
+  });
+  svg.append(sv("text",{class:"tick", x:(X0+X1)/2, y:BASE+34, "text-anchor":"middle", text:"value of one model input (standardized)"}));
+  svg.append(sv("rect",{class:"lg-train", x:X1-170, y:14, width:12, height:12, rx:2}));
+  svg.append(sv("text",{class:"tick", x:X1-152, y:24.5, text:"data the model learned from"}));
+  svg.append(sv("rect",{class:"lg-live", x:X1-170, y:34, width:12, height:12, rx:2}));
+  svg.append(sv("text",{class:"tick", x:X1-152, y:44.5, text:"data it sees today"}));
+  updateDrift();
+}
+function accuracy(){ var s=Math.abs(months*0.2-trainMean); return 94-30*(1-Math.exp(-s*s/1.5)); }
+function updateDrift(note){
+  var live=months*0.2;
+  drTrain.setAttribute("d", curve(trainMean, true));
+  drLive.setAttribute("d", curve(live, false));
+  $("driftMonths").textContent=String(months);
+  var a=accuracy(), cls, status;
+  if(a>=90){ cls="good"; status="Healthy"; }
+  else if(a>=85){ cls="meh"; status="Degrading, watch it"; }
+  else { cls="bad"; status="Below the 85% threshold: retraining triggered"; }
+  var st=$("driftStats"); st.textContent="";
+  st.append(
+    h("div",{class:"stat"}, h("span",{class:"k",text:"Accuracy on today's data"}), h("span",{class:"v "+cls,text:a.toFixed(1)+"%"})),
+    h("div",{class:"stat"}, h("span",{class:"k",text:"Monitoring status"}), h("span",{class:"v "+cls,text:status})),
+    h("div",{class:"stat"}, h("span",{class:"k",text:"Lines of code changed"}), h("span",{class:"v",text:"0"})));
+  $("driftNote").textContent=note||"";
+}
+$("driftSlider").addEventListener("input", function(e){ months=Number(e.target.value); updateDrift(); });
+$("driftRetrain").addEventListener("click", function(){
+  if(Math.abs(months*0.2-trainMean)<0.01){ updateDrift("Already trained on current data."); return; }
+  trainMean=months*0.2; updateDrift("Retrained on data from month "+months+". Accuracy is back, until the world moves again.");
+});
+buildDrift();
+
+/* ---------- Part 10: quiz ---------- */
+var QUIZ=[
+  {q:"An app works on the developer's laptop but crashes on the server with \"module not found\". Which practice targets this most directly?",
+   o:["Better monitoring and alerts","Packaging the app and its dependencies into a container image","Adding a code review step","Moving the app to Kubernetes"], a:1,
+   why:"The environments differ, and a container image freezes the exact dependencies so every environment runs the same thing. Monitoring tells you it crashed, not why. Kubernetes runs containers but doesn't fix packaging; you'd need the image first."},
+  {q:"Staging was built two years ago by clicking through the AWS console. The engineer who built it has left. Now you need a second, identical environment.",
+   o:["Write detailed documentation of the current setup","Containerize the application","Define the infrastructure as code (for example, Terraform) and create both environments from it","Set up a CI pipeline"], a:2,
+   why:"Documentation drifts from reality, and nobody runs it. Code that creates infrastructure can be reviewed, versioned and executed again. Containers package the app, not the network, databases and permissions around it."},
+  {q:"Before every release, QA spends three days running the same test checklist by hand.",
+   o:["Hire more QA engineers","Automate those tests and run them in CI on every change","Release less often so QA has time","Skip testing for small changes"], a:1,
+   why:"Repeated manual checks are exactly what CI automates. More people keeps the queue; releasing less often makes batches bigger (the doom loop); skipping tests moves the bugs to users."},
+  {q:"Customers report errors on social media before your team notices anything.",
+   o:["Monitoring and alerting on user-facing symptoms such as error rate and latency","More unit tests","A change-approval board","Kubernetes autoscaling"], a:0,
+   why:"Tests catch bugs before release; monitoring catches what reaches production anyway, including problems no test anticipated. Alerting on symptoms means you hear first."},
+  {q:"A bank must have a named person approve each production release, but wants everything else automated. Which practice fits?",
+   o:["Continuous Integration only","Continuous Delivery","Continuous Deployment","None, because banks can't automate releases"], a:1,
+   why:"Continuous Delivery automates everything up to a one-click production deploy and keeps that click as a human decision. CI alone leaves deployment manual; Continuous Deployment removes the human step the bank requires."},
+  {q:"A fraud model's accuracy slid from 93% to 81% over four months. No code changed. What is most likely happening?",
+   o:["A bug in the latest deploy, so roll it back","The live data has drifted away from the training data, so monitor inputs and retrain","The servers are out of memory","The model overfit during training"], a:1,
+   why:"Gradual decay with no code change is the signature of data drift. Rolling back does nothing because nothing was deployed. Overfitting would show as poor accuracy from the first day, not a slow slide."},
+  {q:"A two-person startup runs one web API and one background worker on AWS. Which runtime is the sensible default?",
+   o:["Amazon EKS, so they're ready to scale","ECS on Fargate, or one VM with Docker Compose","Two EC2 instances configured by hand over SSH","A separate AWS account per service"], a:1,
+   why:"Two people shouldn't run a Kubernetes platform. ECS on Fargate gives managed containers with little operational load, and one VM with Compose is fine for a prototype. Hand-configured servers are pets; this lesson showed where that leads."}
+];
+var qState=[];
+function renderQuiz(){
+  var box=$("quiz"); box.textContent="";
+  QUIZ.forEach(function(item, qi){
+    var picked=qState[qi];
+    var card=h("div",{class:"qcard"}, h("span",{class:"qn",text:"Question "+(qi+1)+" of "+QUIZ.length}), h("p",{class:"qq",text:item.q}));
+    var opts=h("div",{class:"opts"});
+    item.o.forEach(function(o, oi){
+      var cls="opt";
+      if(picked!==undefined){ if(oi===item.a) cls+=" right"; else if(oi===picked) cls+=" wrong"; }
+      opts.append(h("button",{type:"button", class:cls, disabled:picked!==undefined, onclick:function(){ qState[qi]=oi; renderQuiz(); }}, o));
+    });
+    card.append(opts);
+    if(picked!==undefined) card.append(h("div",{class:"why"}, h("strong",{text:picked===item.a ? "Correct." : "Not quite."}), item.why));
+    box.append(card);
+  });
+  var answered=0, right=0;
+  QUIZ.forEach(function(item, qi){ if(qState[qi]!==undefined){ answered++; if(qState[qi]===item.a) right++; } });
+  $("quizScore").textContent=answered ? right+" of "+answered+" correct so far ("+QUIZ.length+" questions)" : QUIZ.length+" questions";
+}
+$("quizReset").addEventListener("click", function(){ qState=[]; renderQuiz(); });
+renderQuiz();
+
+/* ---------- Part 11: checklist (this browser only) ---------- */
+var KEY="devops-path-l01-checklist";
+var saved={};
+try{ saved=JSON.parse(localStorage.getItem(KEY)||"{}")||{}; }catch(e){ saved={}; }
+$("checklist").querySelectorAll("input[type=checkbox]").forEach(function(c){
+  c.checked=!!saved[c.id];
+  c.addEventListener("change", function(){ saved[c.id]=c.checked; try{ localStorage.setItem(KEY, JSON.stringify(saved)); }catch(e){} });
+});
+})();
+</script>
+</body>
+</html>
